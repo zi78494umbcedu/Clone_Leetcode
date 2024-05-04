@@ -1,47 +1,46 @@
-import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
-import { app } from "./utils/firebase";
+import { app } from "./App";
+import { FirebaseError } from "firebase/app";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+
+const provider = new GoogleAuthProvider();
 const actionCodeSettings = {
-    // URL you want to redirect back to. The domain (www.example.com) for this
-    // URL must be in the authorized domains list in the Firebase Console.
     url: 'http://localhost:3000',
-    // This must be true.
     handleCodeInApp: true
-  };
+};
 
-export const Signin = ()=>{
-
+export const Signin = () => {
     const auth = getAuth(app);
+    auth.languageCode = 'it';
     const [email, setEmail] = useState("");
 
-    async function onSignin(){
-        await sendSignInLinkToEmail(auth, email, actionCodeSettings)
-            .then(() => {
-                // The link was successfully sent. Inform the user.
-                // Save the email locally so you don't need to ask the user for it again
-                // if they open the link on the same device.
-                window.localStorage.setItem('emailForSignIn', email);
-                alert("sent email");
-                // ...
-            })
-            .catch((error) => {
-                alert("email not sent")
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // ...
-            });
+    const onSignin = async () => {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if (!credential) {
+                return;
+            }
+            const token = credential.accessToken;
+            const user = result.user;
+            console.log(user);
+            // IdP data available using getAdditionalUserInfo(result)
+        } catch (error) {
+            // Handle Errors here.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            const email = error.customData?.email; // Note: use optional chaining
+            const credential = GoogleAuthProvider.credentialFromError(error);
+            // Handle errors accordingly
+        }
+    };
 
-    }
-    
-  
-    return <div>
-        <input type="text" placeholder="email" onChange={(e)=>{
-            setEmail(e.target.value);
-        }}></input>
-        <button onClick={()=>{
-            onSignin()
-        }}>
-            Signup
-        </button>
-    </div>
-}
+    return (
+        <div>
+            <button onClick={onSignin}>
+                Sign in with Google
+            </button>
+        </div>
+    );
+};

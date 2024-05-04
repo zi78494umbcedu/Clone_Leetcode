@@ -1,5 +1,7 @@
 # leetcode-clone
 Clone_Leetcode
+Credit:- https://erdos.sdslabs.co/
+
 
 Build an end to end leetcode clone
 - Users should be able to sign in
